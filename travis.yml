@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t hmuruges/react-test -f ./client/Dockerfile.dev
+
+script:
+  - docker run hmuruges/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t hmuruges/multi-client ./client
+  - docker build -t hmuruges/multi-nginx ./nginx
+  - docker build -t hmuruges/multi-server ./server
+  - docker build -t hmuruges/multi-worker ./worker
+  #Login to the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID"
+  #take those images and push them to docker hub
+  - docker push hmuruges/multi-client
+  - docker push hmuruges/multi-nginx
+  - docker push hmuruges/multi-server
+  - docker push hmuruges/multi-worker
